@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source:*)",
+      "Bash(java:*)",
+      "Bash(mvn:*)",
+      "Bash(javac:*)",
+      "Read(//Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home/bin/**)",
+      "Read(//Users/yangq/Library/Java/JavaVirtualMachines/openjdk-24.0.2+12-54/Contents/Home/bin/**)",
+      "Bash(echo:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(mvn spring-boot:run:*)",
+      "Bash(chmod:*)",
+      "Bash(docker build:*)",
+      "Bash(./build-and-push.sh:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}
