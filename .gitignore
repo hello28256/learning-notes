@@ -50,7 +50,6 @@ desktop.ini
 
 # Uploads
 uploads/
-*.md
 *.txt
 *.markdown
 
