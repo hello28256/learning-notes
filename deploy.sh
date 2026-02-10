@@ -19,7 +19,7 @@ check_environment() {
     fi
 
     # 检查 Docker Compose
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         echo "❌ 未安装 Docker Compose，请先安装 Docker Compose"
         exit 1
     fi
@@ -101,7 +101,7 @@ start_services() {
     mkdir -p uploads
 
     # 启动 Docker Compose
-    docker-compose up -d
+    docker compose up -d
 
     if [ $? -eq 0 ]; then
         echo "✅ 服务启动成功"
@@ -124,20 +124,20 @@ start_services() {
 # 停止服务
 stop_services() {
     echo "停止服务..."
-    docker-compose down
+    docker compose down
     echo "✅ 服务已停止"
 }
 
 # 查看日志
 show_logs() {
     echo "查看日志..."
-    docker-compose logs -f
+    docker compose logs -f
 }
 
 # 重启服务
 restart_services() {
     echo "重启服务..."
-    docker-compose restart
+    docker compose restart
     echo "✅ 服务已重启"
 }
 
@@ -147,7 +147,7 @@ clean_data() {
 
     read -p "确定要清理所有数据吗？(y/N): " confirm
     if [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]]; then
-        docker-compose down -v
+        docker compose down -v
         rm -rf uploads
         echo "✅ 数据已清理"
     else

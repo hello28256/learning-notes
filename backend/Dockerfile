@@ -28,4 +28,4 @@ COPY --from=builder /app/target/learning-notes-1.0.0.jar app.jar
 EXPOSE 8080
 
 # 启动应用
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]

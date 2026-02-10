@@ -9,6 +9,11 @@ const service = axios.create({
 // 请求拦截器
 service.interceptors.request.use(
   config => {
+    // 从 localStorage 获取 token
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers['Authorization'] = 'Bearer ' + token
+    }
     return config
   },
   error => {
@@ -29,6 +34,12 @@ service.interceptors.response.use(
   },
   error => {
     console.error('响应错误:', error)
+    // 处理后端返回的错误响应
+    if (error.response && error.response.data) {
+      const errorData = error.response.data
+      const errorMessage = errorData.message || '请求失败'
+      return Promise.reject(new Error(errorMessage))
+    }
     return Promise.reject(error)
   }
 )

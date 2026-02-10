@@ -12,6 +12,9 @@ ALIYUN_PASSWORD="Yq379958"  # 阿里云密码
 NAMESPACE="learning-notes"
 VERSION="v1.0.0"
 
+# 多架构支持 (ARM64 + AMD64)
+PLATFORMS="linux/amd64,linux/arm64"
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -81,92 +84,84 @@ login_acr() {
 
 # 构建后端镜像
 build_backend() {
-    print_info "构建后端镜像..."
+    print_info "构建后端镜像 (多架构: ${PLATFORMS})..."
 
     cd backend
 
-    # 构建镜像
-    if docker build -t ${NAMESPACE}-backend:${VERSION} . > /dev/null 2>&1; then
-        print_success "后端镜像构建成功"
+    # 使用 Docker Buildx 构建多架构镜像
+    if docker buildx build \
+        --platform ${PLATFORMS} \
+        -t ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:${VERSION} \
+        -t ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:latest \
+        --push \
+        . > /dev/null 2>&1; then
+        print_success "后端镜像构建并推送成功 (v${VERSION} 和 latest)"
     else
         print_error "后端镜像构建失败"
         exit 1
     fi
-
-    # 标记镜像
-    docker tag ${NAMESPACE}-backend:${VERSION} ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:${VERSION}
-    docker tag ${NAMESPACE}-backend:${VERSION} ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:latest
 
     cd ..
 }
 
 # 构建前端镜像
 build_frontend() {
-    print_info "构建前端镜像..."
+    print_info "构建前端镜像 (多架构: ${PLATFORMS})..."
 
     cd frontend
 
-    # 构建镜像
-    if docker build -t ${NAMESPACE}-frontend:${VERSION} . > /dev/null 2>&1; then
-        print_success "前端镜像构建成功"
+    # 使用 Docker Buildx 构建多架构镜像
+    if docker buildx build \
+        --platform ${PLATFORMS} \
+        -t ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:${VERSION} \
+        -t ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:latest \
+        --push \
+        . > /dev/null 2>&1; then
+        print_success "前端镜像构建并推送成功 (v${VERSION} 和 latest)"
     else
         print_error "前端镜像构建失败"
         exit 1
     fi
 
-    # 标记镜像
-    docker tag ${NAMESPACE}-frontend:${VERSION} ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:${VERSION}
-    docker tag ${NAMESPACE}-frontend:${VERSION} ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:latest
-
     cd ..
 }
 
-# 推送镜像
-push_images() {
-    print_info "推送后端镜像..."
+# 检查镜像是否已推送
+check_images() {
+    print_info "检查镜像是否已推送..."
 
-    if docker push ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:${VERSION} > /dev/null 2>&1; then
-        print_success "后端镜像推送成功 (v${VERSION})"
+    # 检查后端镜像
+    if docker pull ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:latest > /dev/null 2>&1; then
+        print_success "后端镜像已推送 (latest)"
     else
-        print_error "后端镜像推送失败"
+        print_error "后端镜像未找到，请检查构建是否成功"
         exit 1
     fi
 
-    if docker push ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:latest > /dev/null 2>&1; then
-        print_success "后端镜像推送成功 (latest)"
+    # 检查前端镜像
+    if docker pull ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:latest > /dev/null 2>&1; then
+        print_success "前端镜像已推送 (latest)"
     else
-        print_error "后端镜像推送失败"
-        exit 1
-    fi
-
-    print_info "推送前端镜像..."
-
-    if docker push ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:${VERSION} > /dev/null 2>&1; then
-        print_success "前端镜像推送成功 (v${VERSION})"
-    else
-        print_error "前端镜像推送失败"
-        exit 1
-    fi
-
-    if docker push ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:latest > /dev/null 2>&1; then
-        print_success "前端镜像推送成功 (latest)"
-    else
-        print_error "前端镜像推送失败"
+        print_error "前端镜像未找到，请检查构建是否成功"
         exit 1
     fi
 }
 
 # 显示镜像信息
 show_info() {
-    print_info "镜像信息:"
+    print_info "镜像信息 (已推送):"
     echo "  后端: ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:${VERSION}"
     echo "  前端: ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:${VERSION}"
+    echo ""
+    print_info "镜像支持架构:"
+    echo "  linux/amd64 (阿里云ECS)"
+    echo "  linux/arm64 (Mac M1/M2)"
     echo ""
     print_info "ECS部署命令:"
     echo "  docker login ${ALIYUN_REGISTRY} -u ${ALIYUN_ACCOUNT} -p ${ALIYUN_PASSWORD}"
     echo "  docker pull ${ALIYUN_REGISTRY}/${NAMESPACE}/backend:latest"
     echo "  docker pull ${ALIYUN_REGISTRY}/${NAMESPACE}/frontend:latest"
-    echo "  docker-compose up -d"
+    echo "  docker compose up -d"
 }
 
 # 主函数
@@ -181,7 +176,7 @@ main() {
     login_acr
     build_backend
     build_frontend
-    push_images
+    check_images
     show_info
 
     echo ""

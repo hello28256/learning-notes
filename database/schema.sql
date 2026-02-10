@@ -3,6 +3,18 @@ CREATE DATABASE IF NOT EXISTS learning_notes CHARACTER SET utf8mb4 COLLATE utf8m
 
 USE learning_notes;
 
+-- 用户表
+CREATE TABLE IF NOT EXISTS users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
+    password VARCHAR(100) NOT NULL COMMENT '密码',
+    email VARCHAR(100) COMMENT '邮箱',
+    avatar VARCHAR(500) COMMENT '头像URL',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_username (username)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
+
 -- 笔记表
 CREATE TABLE IF NOT EXISTS notes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -13,11 +25,16 @@ CREATE TABLE IF NOT EXISTS notes (
     category VARCHAR(100) COMMENT '分类标签',
     tags VARCHAR(500) COMMENT '标签（逗号分隔）',
     view_count INT DEFAULT 0 COMMENT '浏览次数',
+    is_public TINYINT DEFAULT 0 COMMENT '是否公开：0-私有，1-公开',
+    user_id BIGINT COMMENT '用户ID',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_category (category),
     INDEX idx_created_at (created_at),
-    INDEX idx_title (title)
+    INDEX idx_title (title),
+    INDEX idx_is_public (is_public),
+    INDEX idx_user_id (user_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='学习笔记表';
 
 -- 笔记分类表
@@ -58,8 +75,30 @@ INSERT IGNORE INTO categories (name, description) VALUES
 ('工具使用', '开发工具和效率工具笔记'),
 ('其他', '其他学习笔记');
 
+-- 笔记分享表
+CREATE TABLE IF NOT EXISTS note_shares (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    note_id BIGINT NOT NULL COMMENT '笔记ID',
+    share_code VARCHAR(20) NOT NULL UNIQUE COMMENT '分享短码',
+    share_title VARCHAR(100) COMMENT '分享标题（自定义）',
+    created_by BIGINT COMMENT '创建分享的用户ID',
+    view_count INT DEFAULT 0 COMMENT '分享浏览次数',
+    expires_at DATETIME COMMENT '过期时间（NULL表示永不过期）',
+    is_active TINYINT DEFAULT 1 COMMENT '是否有效：0-无效，1-有效',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_share_code (share_code),
+    INDEX idx_note_id (note_id),
+    INDEX idx_created_by (created_by),
+    INDEX idx_expires_at (expires_at),
+    INDEX idx_is_active (is_active),
+    FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='笔记分享表';
+
 -- 插入常用标签
 INSERT IGNORE INTO tags (name) VALUES
 ('Java'), ('Python'), ('JavaScript'), ('Vue'), ('Spring'), ('MySQL'),
 ('Redis'), ('Docker'), ('Linux'), ('Git'), ('算法'), ('数据结构'),
 ('设计模式'), ('微服务'), ('RESTful'), ('HTTP'), ('网络'), ('操作系统');
+

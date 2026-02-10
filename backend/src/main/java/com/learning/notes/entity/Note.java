@@ -23,7 +23,7 @@ public class Note {
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "LONGTEXT")
     private String content;
 
     @Column(name = "file_name")
@@ -40,6 +40,12 @@ public class Note {
 
     @Column(name = "view_count", columnDefinition = "INT DEFAULT 0")
     private Integer viewCount = 0;
+
+    @Column(name = "is_public", columnDefinition = "TINYINT DEFAULT 0")
+    private Boolean isPublic = false;
+
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

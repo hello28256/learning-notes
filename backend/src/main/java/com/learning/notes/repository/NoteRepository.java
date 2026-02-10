@@ -58,4 +58,40 @@ public interface NoteRepository extends JpaRepository<Note, Long> {
      */
     @Query("SELECT DISTINCT n.tags FROM Note n WHERE n.tags IS NOT NULL")
     List<String> findAllTags();
+
+    /**
+     * 查询所有公开笔记，按创建时间倒序
+     */
+    List<Note> findByIsPublicTrueOrderByCreatedAtDesc();
+
+    /**
+     * 根据用户ID查询笔记，按创建时间倒序
+     */
+    List<Note> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    /**
+     * 根据标题模糊查询公开笔记
+     */
+    List<Note> findByTitleContainingAndIsPublicTrue(String title);
+
+    /**
+     * 根据分类查询公开笔记
+     */
+    List<Note> findByCategoryAndIsPublicTrue(String category);
+
+    /**
+     * 根据标签查询公开笔记
+     */
+    @Query("SELECT n FROM Note n WHERE n.tags LIKE %:tag% AND n.isPublic = true")
+    List<Note> findByTagContainingAndIsPublicTrue(@Param("tag") String tag);
+
+    /**
+     * 查询所有公开笔记
+     */
+    List<Note> findByIsPublicTrue();
+
+    /**
+     * 根据用户ID查询笔记
+     */
+    List<Note> findByUserId(Long userId);
 }

@@ -1,39 +1,37 @@
 version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
     container_name: learning-notes-mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: root123456
-      MYSQL_DATABASE: learning_notes
-      MYSQL_CHARSET: utf8mb4
-      MYSQL_COLLATION: utf8mb4_unicode_ci
+    restart: unless-stopped
     ports:
       - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: learning_notes
+      TZ: Asia/Shanghai
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
-    command:
-      --default-authentication-plugin=mysql_native_password
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     networks:
       - learning-notes-network
-      
 
   backend:
-    image: crpi-zqmddwfip4cwc7n1.cn-beijing.personal.cr.aliyuncs.com/learning-notes/backend:latest
+    build: ./backend # 本地构建
+    # image: crpi-zqmddwfip4cwc7n1.cn-beijing.personal.cr.aliyuncs.com/learning-notes/backend:latest
     container_name: learning-notes-backend
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/learning_notes?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_URL: jdbc:mysql://learning-notes-mysql:3306/learning_notes?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root123456
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       FILE_UPLOAD_DIR: /app/uploads
+      TZ: Asia/Shanghai
     volumes:
       - uploads_data:/app/uploads
+      - ./backend/target/learning-notes-1.0.0.jar:/app/app.jar
     depends_on:
       - mysql
     networks:
@@ -41,19 +39,22 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: crpi-zqmddwfip4cwc7n1.cn-beijing.personal.cr.aliyuncs.com/learning-notes/frontend:latest
+    build: ./frontend # 本地构建
+    # image: crpi-zqmddwfip4cwc7n1.cn-beijing.personal.cr.aliyuncs.com/learning-notes/frontend:latest
     container_name: learning-notes-frontend
     ports:
-      - "8089:80"
+      - "80:80"
     depends_on:
       - backend
     networks:
       - learning-notes-network
     restart: unless-stopped
 
+# 声明的作用，没有实际作用，只是为了方便管理
 volumes:
   mysql_data:
   uploads_data:
+
 
 networks:
   learning-notes-network:

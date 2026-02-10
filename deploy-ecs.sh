@@ -47,7 +47,7 @@ check_docker() {
         exit 1
     fi
 
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         print_error "未安装Docker Compose，请先安装Docker Compose"
         print_info "下载地址: https://github.com/docker/compose/releases"
         exit 1
@@ -158,7 +158,7 @@ start_services() {
 
     # 启动Docker Compose
     print_info "正在启动Docker容器..."
-    docker-compose up -d
+    docker compose up -d
 
     if [ $? -eq 0 ]; then
         print_success "服务启动成功"
@@ -185,11 +185,11 @@ stop_services() {
     print_info "停止服务..."
 
     if [ ! -f "docker-compose.yml" ]; then
-        print_error "未找到docker-compose.yml文件"
+        print_error "未找到docker compose.yml文件"
         exit 1
     fi
 
-    docker-compose down
+    docker compose down
 
     if [ $? -eq 0 ]; then
         print_success "服务已停止"
@@ -213,11 +213,11 @@ show_status() {
     print_info "服务状态..."
 
     if [ ! -f "docker-compose.yml" ]; then
-        print_error "未找到docker-compose.yml文件"
+        print_error "未找到docker compose.yml文件"
         exit 1
     fi
 
-    docker-compose ps
+    docker compose ps
 
     echo ""
     print_info "容器资源使用情况:"
@@ -229,11 +229,11 @@ show_logs() {
     print_info "查看日志..."
 
     if [ ! -f "docker-compose.yml" ]; then
-        print_error "未找到docker-compose.yml文件"
+        print_error "未找到docker compose.yml文件"
         exit 1
     fi
 
-    docker-compose logs -f
+    docker compose logs -f
 }
 
 # 清理数据
@@ -245,11 +245,11 @@ clean_data() {
         print_info "清理数据..."
 
         if [ ! -f "docker-compose.yml" ]; then
-            print_error "未找到docker-compose.yml文件"
+            print_error "未找到docker compose.yml文件"
             exit 1
         fi
 
-        docker-compose down -v
+        docker compose down -v
         rm -rf uploads
 
         print_success "数据已清理"

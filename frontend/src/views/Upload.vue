@@ -82,6 +82,13 @@
           </el-select>
         </el-form-item>
 
+        <el-form-item label="可见性" prop="isPublic">
+          <el-radio-group v-model="form.isPublic">
+            <el-radio :label="false">私有（仅自己可见）</el-radio>
+            <el-radio :label="true">公开（所有人可见）</el-radio>
+          </el-radio-group>
+        </el-form-item>
+
         <el-form-item>
           <el-button
             type="primary"
@@ -129,7 +136,8 @@ const form = ref({
   file: null,
   title: '',
   category: '',
-  tags: []
+  tags: [],
+  isPublic: false
 })
 
 const rules = {
@@ -186,6 +194,7 @@ const handleSubmit = async () => {
         if (form.value.tags && form.value.tags.length > 0) {
           formData.append('tags', form.value.tags.join(','))
         }
+        formData.append('isPublic', form.value.isPublic)
 
         const res = await noteApi.upload(formData)
 

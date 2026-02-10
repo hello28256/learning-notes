@@ -61,7 +61,7 @@ check_docker() {
         exit 1
     fi
 
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         print_error "未安装Docker Compose，请先安装Docker Compose"
         exit 1
     fi
@@ -117,7 +117,7 @@ create_upload_dir() {
 start_services() {
     print_info "启动服务..."
 
-    if docker-compose up -d > /dev/null 2>&1; then
+    if docker compose up -d > /dev/null 2>&1; then
         print_success "服务启动成功"
     else
         print_error "服务启动失败"
@@ -128,7 +128,7 @@ start_services() {
 # 显示服务状态
 show_status() {
     print_info "服务状态:"
-    docker-compose ps
+    docker compose ps
 
     echo ""
     print_info "访问地址:"

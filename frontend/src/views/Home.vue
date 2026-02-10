@@ -1,97 +1,144 @@
 <template>
   <div class="home-page">
+    <!-- 提交历史热力图 -->
+    <ContributionGraph :contributions="contributions" />
+
+    <!-- Hero 区域 -->
+    <div class="hero-section">
+      <div class="hero-content">
+        <h1 class="hero-title">📚 我的学习笔记</h1>
+        <p class="hero-subtitle">记录学习，分享知识，持续成长</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ notes.length }}</span>
+            <span class="stat-label">笔记</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ categories.length }}</span>
+            <span class="stat-label">分类</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ tags.length }}</span>
+            <span class="stat-label">标签</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 搜索栏 -->
-    <div class="search-bar">
-      <el-input
-        v-model="searchKeyword"
-        placeholder="搜索笔记标题..."
-        size="large"
-        @keyup.enter="handleSearch"
-        clearable
-      >
-        <template #append>
-          <el-button @click="handleSearch" :icon="Search">搜索</el-button>
-        </template>
-      </el-input>
+    <div class="search-section">
+      <div class="search-bar">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索笔记标题、内容..."
+          size="large"
+          @keyup.enter="handleSearch"
+          clearable
+          class="search-input"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+          <template #append>
+            <el-button @click="handleSearch" type="primary">搜索</el-button>
+          </template>
+        </el-input>
+      </div>
     </div>
 
     <!-- 分类和标签 -->
     <div class="filter-section">
-      <div class="categories">
-        <span class="label">分类：</span>
-        <el-tag
-          v-for="category in categories"
-          :key="category"
-          @click="goToCategory(category)"
-          class="filter-tag"
-          effect="plain"
-        >
-          {{ category }}
-        </el-tag>
+      <div class="filter-group">
+        <div class="filter-title">
+          <el-icon><Folder /></el-icon>
+          分类
+        </div>
+        <div class="filter-tags">
+          <el-tag
+            v-for="category in categories"
+            :key="category"
+            @click="goToCategory(category)"
+            class="filter-tag category-tag"
+            effect="light"
+          >
+            {{ category }}
+          </el-tag>
+        </div>
       </div>
-      <div class="tags">
-        <span class="label">标签：</span>
-        <el-tag
-          v-for="tag in tags"
-          :key="tag"
-          @click="goToTag(tag)"
-          class="filter-tag"
-          type="info"
-          effect="plain"
-        >
-          {{ tag }}
-        </el-tag>
+      <div class="filter-group">
+        <div class="filter-title">
+          <el-icon><CollectionTag /></el-icon>
+          标签
+        </div>
+        <div class="filter-tags">
+          <el-tag
+            v-for="tag in tags"
+            :key="tag"
+            @click="goToTag(tag)"
+            class="filter-tag"
+            type="info"
+            effect="light"
+          >
+            {{ tag }}
+          </el-tag>
+        </div>
       </div>
     </div>
 
     <!-- 笔记列表 -->
     <div class="notes-section">
       <div class="section-header">
-        <h3>笔记列表</h3>
-        <el-button type="primary" @click="$router.push('/upload')" :icon="Upload">
-          上传笔记
+        <div class="section-title">
+          <el-icon><Document /></el-icon>
+          <span>最新笔记</span>
+        </div>
+        <el-button type="primary" @click="$router.push('/upload')" :icon="Plus" round>
+          新建笔记
         </el-button>
       </div>
 
-      <el-empty v-if="notes.length === 0" description="暂无笔记，请上传" />
+      <el-empty v-if="notes.length === 0" description="暂无笔记，快来创建第一条笔记吧~">
+        <el-button type="primary" @click="$router.push('/upload')">去上传</el-button>
+      </el-empty>
 
-      <el-row :gutter="20" v-else>
-        <el-col
+      <div v-else class="notes-grid">
+        <div
           v-for="note in notes"
           :key="note.id"
-          :xs="24"
-          :sm="12"
-          :md="8"
-          :lg="6"
+          class="note-card"
+          @click="goToNote(note.id)"
         >
-          <el-card class="note-card" @click="goToNote(note.id)" shadow="hover">
-            <div class="note-header">
-              <h4 class="note-title">{{ note.title }}</h4>
-              <el-tag size="small" v-if="note.category" @click.stop="goToCategory(note.category)">
-                {{ note.category }}
-              </el-tag>
+          <div class="note-card-header">
+            <div class="note-icon">
+              <el-icon><Document /></el-icon>
             </div>
-            <div class="note-meta">
-              <span class="date">{{ formatDate(note.createdAt) }}</span>
-              <span class="views">
-                <el-icon><View /></el-icon>
-                {{ note.viewCount }}
-              </span>
+            <div class="note-category" v-if="note.category">
+              {{ note.category }}
             </div>
-            <div class="note-tags" v-if="note.tags">
-              <el-tag
-                v-for="tag in note.tags.split(',')"
-                :key="tag"
-                size="small"
-                type="info"
-                @click.stop="goToTag(tag)"
-              >
-                {{ tag }}
-              </el-tag>
-            </div>
-          </el-card>
-        </el-col>
-      </el-row>
+          </div>
+          <h4 class="note-title">{{ note.title }}</h4>
+          <div class="note-meta">
+            <span class="meta-item">
+              <el-icon><Calendar /></el-icon>
+              {{ formatDate(note.createdAt) }}
+            </span>
+            <span class="meta-item">
+              <el-icon><View /></el-icon>
+              {{ note.viewCount }}
+            </span>
+          </div>
+          <div class="note-tags" v-if="note.tags">
+            <span
+              v-for="tag in note.tags.split(',').slice(0, 3)"
+              :key="tag"
+              class="note-tag"
+              @click.stop="goToTag(tag)"
+            >
+              #{{ tag.trim() }}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -99,10 +146,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Upload, View } from '@element-plus/icons-vue'
+import { Search, Plus, View, Calendar, Document, Folder, CollectionTag } from '@element-plus/icons-vue'
 import { noteApi } from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
+import ContributionGraph from '@/components/ContributionGraph.vue'
 
 const router = useRouter()
 
@@ -110,6 +158,7 @@ const notes = ref([])
 const categories = ref([])
 const tags = ref([])
 const searchKeyword = ref('')
+const contributions = ref([])
 
 // 获取所有笔记
 const fetchNotes = async () => {
@@ -173,149 +222,315 @@ const goToTag = (tag) => {
 
 // 格式化日期
 const formatDate = (date) => {
-  return dayjs(date).format('YYYY-MM-DD HH:mm')
+  return dayjs(date).format('MM-DD')
+}
+
+// 获取提交历史
+const fetchContributions = async () => {
+  try {
+    const res = await noteApi.getContributions()
+    if (res.success) {
+      contributions.value = res.data || []
+    }
+  } catch (error) {
+    console.error('获取提交历史失败:', error)
+  }
 }
 
 onMounted(() => {
   fetchNotes()
   fetchCategories()
   fetchTags()
+  fetchContributions()
 })
 </script>
 
 <style lang="scss" scoped>
 .home-page {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 20px;
 }
 
-.search-bar {
+// Hero 区域
+.hero-section {
+  text-align: center;
+  padding: 40px 0;
   margin-bottom: 20px;
-  max-width: 600px;
+
+  .hero-content {
+    .hero-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin: 0 0 12px 0;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin: 0 0 30px 0;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+
+      .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .stat-number {
+          font-size: 32px;
+          font-weight: 700;
+          color: var(--accent-color);
+          line-height: 1;
+        }
+
+        .stat-label {
+          font-size: 14px;
+          color: var(--text-secondary);
+          margin-top: 4px;
+        }
+      }
+    }
+  }
 }
 
+// 搜索区域
+.search-section {
+  margin-bottom: 30px;
+
+  .search-bar {
+    max-width: 600px;
+    margin: 0 auto;
+
+    .search-input {
+      :deep(.el-input__wrapper) {
+        border-radius: 25px 0 0 25px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        padding-left: 15px;
+      }
+
+      :deep(.el-input-group__append) {
+        border-radius: 0 25px 25px 0;
+        overflow: hidden;
+
+        .el-button {
+          border-radius: 0;
+          padding: 0 25px;
+        }
+      }
+    }
+  }
+}
+
+// 筛选区域
 .filter-section {
-  background: white;
+  background: var(--card-bg);
+  border-radius: 12px;
   padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+  box-shadow: var(--card-shadow);
 
-  .categories,
-  .tags {
-    display: flex;
-    align-items: center;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+  .filter-group {
+    margin-bottom: 16px;
 
     &:last-child {
       margin-bottom: 0;
     }
 
-    .label {
-      font-weight: 500;
-      color: #606266;
-      margin-right: 10px;
-      white-space: nowrap;
+    .filter-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+
+      .el-icon {
+        color: var(--accent-color);
+      }
     }
 
-    .filter-tag {
-      margin-right: 8px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
+    .filter-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
 
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      .filter-tag {
+        cursor: pointer;
+        transition: all 0.3s;
+        border-radius: 16px;
+        padding: 6px 14px;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        &.category-tag {
+          background: var(--accent-color);
+          color: white;
+          border-color: var(--accent-color);
+        }
       }
     }
   }
 }
 
+// 笔记区域
 .notes-section {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-
   .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 
-    h3 {
-      margin: 0;
-      color: #303133;
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+
+      .el-icon {
+        color: var(--accent-color);
+      }
     }
   }
 
-  .note-card {
-    margin-bottom: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
 
-    &:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    }
+    .note-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid var(--border-color);
 
-    .note-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        border-color: var(--accent-color);
+      }
+
+      .note-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+
+        .note-icon {
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, var(--accent-color), var(--link-hover));
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 20px;
+        }
+
+        .note-category {
+          font-size: 12px;
+          color: var(--accent-color);
+          background: rgba(9, 105, 218, 0.1);
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-weight: 500;
+        }
+      }
 
       .note-title {
-        margin: 0;
         font-size: 16px;
-        color: #303133;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 12px 0;
+        line-height: 1.4;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
-        flex: 1;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
       }
 
-      .el-tag {
-        cursor: pointer;
-        transition: opacity 0.3s;
-
-        &:hover {
-          opacity: 0.8;
-        }
-      }
-    }
-
-    .note-meta {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      font-size: 12px;
-      color: #909399;
-
-      .views {
+      .note-meta {
         display: flex;
-        align-items: center;
-        gap: 4px;
+        gap: 16px;
+        margin-bottom: 12px;
+
+        .meta-item {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 12px;
+          color: var(--text-tertiary);
+
+          .el-icon {
+            font-size: 14px;
+          }
+        }
       }
-    }
 
-    .note-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
+      .note-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
 
-      .el-tag {
-        cursor: pointer;
-        transition: opacity 0.3s;
+        .note-tag {
+          font-size: 12px;
+          color: var(--text-secondary);
+          background: var(--bg-secondary);
+          padding: 3px 8px;
+          border-radius: 4px;
+          transition: all 0.2s;
 
-        &:hover {
-          opacity: 0.8;
+          &:hover {
+            color: var(--accent-color);
+            background: rgba(9, 105, 218, 0.1);
+          }
         }
       }
     }
+  }
+}
+
+// 响应式
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 30px 0;
+
+    .hero-content {
+      .hero-title {
+        font-size: 28px;
+      }
+
+      .hero-stats {
+        gap: 24px;
+
+        .stat-item {
+          .stat-number {
+            font-size: 24px;
+          }
+        }
+      }
+    }
+  }
+
+  .notes-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 </style>

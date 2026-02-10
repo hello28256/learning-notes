@@ -2,12 +2,14 @@ package com.learning.notes.service;
 
 import com.learning.notes.entity.Note;
 import com.learning.notes.repository.NoteRepository;
+import com.learning.notes.util.UserContext;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,17 +22,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 笔记服务类
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class NoteService {
+
+    private static final Logger log = LoggerFactory.getLogger(NoteService.class);
 
     private final NoteRepository noteRepository;
 
@@ -55,7 +61,8 @@ public class NoteService {
      * 上传并解析 Markdown 文件
      */
     @Transactional
-    public Note uploadAndParseMarkdown(MultipartFile file, String category, String tags) throws IOException {
+    public Note uploadAndParseMarkdown(MultipartFile file, String category, String tags, Boolean isPublic)
+            throws IOException {
         // 验证文件类型
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !isAllowedFile(originalFilename)) {
@@ -91,6 +98,8 @@ public class NoteService {
         note.setCategory(category);
         note.setTags(tags);
         note.setViewCount(0);
+        note.setIsPublic(isPublic != null ? isPublic : false); // 使用传入的参数，默认私有
+        note.setUserId(UserContext.getCurrentUserId()); // 设置当前用户
 
         // 保存到数据库
         return noteRepository.save(note);
@@ -111,38 +120,62 @@ public class NoteService {
     }
 
     /**
-     * 获取所有笔记
+     * 获取所有公开笔记
      */
-    public List<Note> getAllNotes() {
-        return noteRepository.findAllByOrderByCreatedAtDesc();
+    public List<Note> getAllPublicNotes() {
+        return noteRepository.findByIsPublicTrueOrderByCreatedAtDesc();
     }
 
     /**
-     * 根据 ID 获取笔记
+     * 获取当前用户的所有笔记（包括私有）
+     */
+    public List<Note> getCurrentUserNotes() {
+        Long userId = UserContext.getCurrentUserId();
+        if (userId == null) {
+            return getAllPublicNotes();
+        }
+        return noteRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    /**
+     * 根据 ID 获取笔记（带权限检查）
      */
     public Optional<Note> getNoteById(Long id) {
-        return noteRepository.findById(id);
+        Optional<Note> noteOpt = noteRepository.findById(id);
+        if (noteOpt.isPresent()) {
+            Note note = noteOpt.get();
+            // 公开笔记所有人可见
+            if (Boolean.TRUE.equals(note.getIsPublic())) {
+                return noteOpt;
+            }
+            // 私有笔记只有作者可见
+            Long currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId != null && currentUserId.equals(note.getUserId())) {
+                return noteOpt;
+            }
+        }
+        return Optional.empty();
     }
 
     /**
-     * 根据标题搜索
+     * 根据标题搜索公开笔记
      */
-    public List<Note> searchNotesByTitle(String title) {
-        return noteRepository.findByTitleContaining(title);
+    public List<Note> searchPublicNotesByTitle(String title) {
+        return noteRepository.findByTitleContainingAndIsPublicTrue(title);
     }
 
     /**
-     * 根据分类获取笔记
+     * 根据分类获取公开笔记
      */
-    public List<Note> getNotesByCategory(String category) {
-        return noteRepository.findByCategory(category);
+    public List<Note> getPublicNotesByCategory(String category) {
+        return noteRepository.findByCategoryAndIsPublicTrue(category);
     }
 
     /**
-     * 根据标签获取笔记
+     * 根据标签获取公开笔记
      */
-    public List<Note> getNotesByTag(String tag) {
-        return noteRepository.findByTagContaining(tag);
+    public List<Note> getPublicNotesByTag(String tag) {
+        return noteRepository.findByTagContainingAndIsPublicTrue(tag);
     }
 
     /**
@@ -157,13 +190,20 @@ public class NoteService {
     }
 
     /**
-     * 删除笔记
+     * 删除笔记（只有创建人可以删除）
      */
     @Transactional
     public void deleteNote(Long id) {
         Optional<Note> noteOpt = noteRepository.findById(id);
         if (noteOpt.isPresent()) {
             Note note = noteOpt.get();
+
+            // 权限检查：只有创建人可以删除
+            Long currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null || !currentUserId.equals(note.getUserId())) {
+                throw new IllegalArgumentException("无权删除此笔记，只有创建人可以删除");
+            }
+
             // 删除文件
             try {
                 if (note.getFilePath() != null) {
@@ -174,6 +214,8 @@ public class NoteService {
             }
             // 删除数据库记录
             noteRepository.delete(note);
+        } else {
+            throw new IllegalArgumentException("笔记不存在");
         }
     }
 
@@ -200,18 +242,56 @@ public class NoteService {
     }
 
     /**
-     * 更新笔记
+     * 更新笔记（只有创建人可以编辑）
      */
     @Transactional
     public Note updateNote(Long id, String title, String category, String tags) {
         Optional<Note> noteOpt = noteRepository.findById(id);
         if (noteOpt.isPresent()) {
             Note note = noteOpt.get();
-            if (title != null) note.setTitle(title);
-            if (category != null) note.setCategory(category);
-            if (tags != null) note.setTags(tags);
+
+            // 权限检查：只有创建人可以编辑
+            Long currentUserId = UserContext.getCurrentUserId();
+            if (currentUserId == null || !currentUserId.equals(note.getUserId())) {
+                throw new IllegalArgumentException("无权编辑此笔记，只有创建人可以编辑");
+            }
+
+            if (title != null)
+                note.setTitle(title);
+            if (category != null)
+                note.setCategory(category);
+            if (tags != null)
+                note.setTags(tags);
             return noteRepository.save(note);
         }
         throw new IllegalArgumentException("笔记不存在");
+    }
+
+    /**
+     * 获取笔记提交历史（用于热力图）
+     */
+    public List<Map<String, Object>> getContributionHistory() {
+        List<Note> notes;
+        if (UserContext.isAuthenticated()) {
+            notes = noteRepository.findByUserId(UserContext.getCurrentUserId());
+        } else {
+            notes = noteRepository.findByIsPublicTrue();
+        }
+
+        // 按日期统计笔记数量
+        Map<String, Long> dateCountMap = notes.stream()
+                .collect(Collectors.groupingBy(
+                        note -> note.getCreatedAt().toLocalDate().toString(),
+                        Collectors.counting()));
+
+        // 转换为列表
+        return dateCountMap.entrySet().stream()
+                .map(entry -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("date", entry.getKey());
+                    map.put("count", entry.getValue());
+                    return map;
+                })
+                .collect(Collectors.toList());
     }
 }

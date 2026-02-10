@@ -2,8 +2,10 @@ package com.learning.notes.controller;
 
 import com.learning.notes.entity.Note;
 import com.learning.notes.service.NoteService;
+import com.learning.notes.util.UserContext;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +22,10 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/notes")
 @RequiredArgsConstructor
-@Slf4j
 @CrossOrigin(origins = "*")
 public class NoteController {
+
+    private static final Logger log = LoggerFactory.getLogger(NoteController.class);
 
     private final NoteService noteService;
 
@@ -33,9 +36,10 @@ public class NoteController {
     public ResponseEntity<?> uploadMarkdown(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String tags) {
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false, defaultValue = "false") Boolean isPublic) {
         try {
-            Note note = noteService.uploadAndParseMarkdown(file, category, tags);
+            Note note = noteService.uploadAndParseMarkdown(file, category, tags, isPublic);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "文件上传成功");
@@ -51,12 +55,17 @@ public class NoteController {
     }
 
     /**
-     * 获取所有笔记
+     * 获取所有笔记（公开笔记所有人可见，登录用户额外看到自己的私有笔记）
      */
     @GetMapping
     public ResponseEntity<?> getAllNotes() {
         try {
-            List<Note> notes = noteService.getAllNotes();
+            List<Note> notes;
+            if (UserContext.isAuthenticated()) {
+                notes = noteService.getCurrentUserNotes();
+            } else {
+                notes = noteService.getAllPublicNotes();
+            }
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", notes);
@@ -100,12 +109,12 @@ public class NoteController {
     }
 
     /**
-     * 根据标题搜索笔记
+     * 根据标题搜索笔记（只搜索公开笔记）
      */
     @GetMapping("/search")
     public ResponseEntity<?> searchNotes(@RequestParam String title) {
         try {
-            List<Note> notes = noteService.searchNotesByTitle(title);
+            List<Note> notes = noteService.searchPublicNotesByTitle(title);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", notes);
@@ -120,12 +129,12 @@ public class NoteController {
     }
 
     /**
-     * 根据分类获取笔记
+     * 根据分类获取笔记（只获取公开笔记）
      */
     @GetMapping("/category/{category}")
     public ResponseEntity<?> getNotesByCategory(@PathVariable String category) {
         try {
-            List<Note> notes = noteService.getNotesByCategory(category);
+            List<Note> notes = noteService.getPublicNotesByCategory(category);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", notes);
@@ -140,12 +149,12 @@ public class NoteController {
     }
 
     /**
-     * 根据标签获取笔记
+     * 根据标签获取笔记（只获取公开笔记）
      */
     @GetMapping("/tag/{tag}")
     public ResponseEntity<?> getNotesByTag(@PathVariable String tag) {
         try {
-            List<Note> notes = noteService.getNotesByTag(tag);
+            List<Note> notes = noteService.getPublicNotesByTag(tag);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("data", notes);
@@ -241,6 +250,26 @@ public class NoteController {
             response.put("success", false);
             response.put("message", "更新笔记失败: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    /**
+     * 获取笔记提交历史（用于热力图）
+     */
+    @GetMapping("/contributions")
+    public ResponseEntity<?> getContributions() {
+        try {
+            List<Map<String, Object>> contributions = noteService.getContributionHistory();
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("data", contributions);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("获取提交历史失败: {}", e.getMessage(), e);
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "获取提交历史失败: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 }

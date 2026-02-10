@@ -1,0 +1,317 @@
+/* GitHub 风格主题变量定义 */
+
+/* 白天模式（GitHub Light） */
+:root,
+.light-theme {
+  /* 背景色 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f6f8fa;
+  --bg-tertiary: #f3f4f6;
+  --bg-header: linear-gradient(135deg, #0969da 0%, #0550ae 100%);
+
+  /* 文字颜色 */
+  --text-primary: #1f2328;
+  --text-secondary: #656d76;
+  --text-tertiary: #8c959f;
+  --text-white: #ffffff;
+
+  /* 边框颜色 */
+  --border-color: #d0d7de;
+  --border-light: #e6e9ef;
+
+  /* 卡片背景 */
+  --card-bg: #ffffff;
+  --card-shadow: 0 1px 3px rgba(31, 35, 40, 0.12), 0 8px 24px rgba(66, 74, 83, 0.12);
+
+  /* 菜单背景 */
+  --menu-bg: transparent;
+  --menu-hover: rgba(255, 255, 255, 0.1);
+  --menu-active: rgba(255, 255, 255, 0.15);
+
+  /* 代码块背景 - GitHub light */
+  --code-bg: #f6f8fa;
+  --code-text: #1f2328;
+  --code-border: #d0d7de;
+  --code-header-bg: #f3f4f6;
+  --code-line-number: #656d76;
+  --code-line-border: #d0d7de;
+
+  /* 链接颜色 */
+  --link-color: #0969da;
+  --link-hover: #0550ae;
+
+  /* 强调色 */
+  --accent-color: #0969da;
+  --accent-hover: #0550ae;
+  --success-color: #1a7f37;
+  --warning-color: #9a6700;
+  --danger-color: #cf222e;
+}
+
+/* 夜间模式（GitHub Dark） */
+.dark-theme {
+  /* 背景色 - GitHub dark dimmed */
+  --bg-primary: #21262d;
+  --bg-secondary: #0d1117;
+  --bg-tertiary: #161b22;
+  --bg-header: #161b22;
+
+  /* 文字颜色 */
+  --text-primary: #c9d1d9;
+  --text-secondary: #8b949e;
+  --text-tertiary: #6e7681;
+  --text-white: #f0f6fc;
+
+  /* 边框颜色 */
+  --border-color: #30363d;
+  --border-light: #21262d;
+
+  /* 卡片背景 */
+  --card-bg: #161b22;
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
+
+  /* 菜单背景 */
+  --menu-bg: transparent;
+  --menu-hover: rgba(255, 255, 255, 0.05);
+  --menu-active: rgba(255, 255, 255, 0.1);
+
+  /* 代码块背景 - GitHub dark */
+  --code-bg: #0d1117;
+  --code-text: #f0f6fc;
+  --code-border: #30363d;
+  --code-header-bg: #161b22;
+  --code-line-number: #8b949e;
+  --code-line-border: #21262d;
+
+  /* 链接颜色 - GitHub blue */
+  --link-color: #58a6ff;
+  --link-hover: #79c0ff;
+
+  /* 强调色 */
+  --accent-color: #58a6ff;
+  --accent-hover: #79c0ff;
+  --success-color: #3fb950;
+  --warning-color: #d29922;
+  --danger-color: #f85149;
+}
+
+/* 全局样式应用 */
+body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Element Plus 组件主题适配 */
+.dark-theme {
+
+  /* 容器 */
+  .el-container {
+    background-color: var(--bg-secondary);
+  }
+
+  .el-main {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  /* 卡片 */
+  .el-card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+
+    :deep(.el-card__header) {
+      border-bottom-color: var(--border-color);
+    }
+  }
+
+  /* 输入框 */
+  .el-input__inner {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    &:hover,
+    &:focus {
+      border-color: var(--accent-color);
+    }
+  }
+
+  .el-textarea__inner {
+    background-color: var(--bg-primary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+
+    &::placeholder {
+      color: var(--text-tertiary);
+    }
+  }
+
+  /* 按钮 */
+  .el-button--default {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+
+    &:hover {
+      background-color: var(--bg-primary);
+      border-color: var(--text-secondary);
+    }
+  }
+
+  .el-button--primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #fff;
+
+    &:hover {
+      background-color: var(--accent-hover);
+      border-color: var(--accent-hover);
+    }
+  }
+
+  /* 下拉菜单 */
+  .el-dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    box-shadow: var(--card-shadow);
+  }
+
+  .el-dropdown-menu__item {
+    color: var(--text-primary);
+
+    &:hover {
+      background-color: var(--bg-tertiary);
+      color: var(--text-primary);
+    }
+  }
+
+  /* 标签 */
+  .el-tag {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+  }
+
+  .el-tag--info {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-secondary);
+  }
+
+  /* 空状态 */
+  .el-empty__description {
+    color: var(--text-secondary);
+  }
+
+  /* 加载 */
+  .el-loading-text {
+    color: var(--text-secondary);
+  }
+
+  /* 对话框 */
+  .el-dialog {
+    background-color: var(--card-bg);
+
+    :deep(.el-dialog__title) {
+      color: var(--text-primary);
+    }
+
+    :deep(.el-dialog__body) {
+      color: var(--text-primary);
+    }
+  }
+
+  /* 菜单 */
+  .el-menu {
+    background-color: transparent;
+  }
+
+  /* 上传 */
+  .el-upload-dragger {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+
+    &:hover {
+      border-color: var(--accent-color);
+    }
+  }
+}
+
+/* 代码块样式 - GitHub 风格 */
+.markdown-body pre {
+  background-color: var(--code-bg);
+  color: var(--code-text);
+  border: 1px solid var(--code-border);
+  border-radius: 6px;
+  padding: 16px;
+  overflow-x: auto;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+.markdown-body code {
+  background-color: var(--code-bg);
+  color: var(--code-text);
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 85%;
+}
+
+.markdown-body pre code {
+  padding: 0;
+  background-color: transparent;
+}
+
+/* 链接样式 */
+.markdown-body a {
+  color: var(--link-color);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
+  }
+}
+
+/* 表格样式 */
+.markdown-body table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 16px;
+
+  th,
+  td {
+    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+  }
+
+  th {
+    background-color: var(--bg-tertiary);
+    font-weight: 600;
+  }
+
+  tr:nth-child(even) {
+    background-color: var(--bg-primary);
+  }
+}
+
+/* 引用块样式 */
+.markdown-body blockquote {
+  border-left: 4px solid var(--border-color);
+  padding-left: 16px;
+  margin-left: 0;
+  color: var(--text-secondary);
+}
+
+/* 水平线 */
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 24px 0;
+}

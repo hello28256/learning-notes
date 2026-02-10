@@ -9,16 +9,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.0",
-    "vue-router": "^4.2.5",
-    "element-plus": "^2.5.0",
     "axios": "^1.6.0",
+    "dayjs": "^1.11.10",
+    "element-plus": "^2.5.0",
+    "highlight.js": "^11.11.1",
     "markdown-it": "^13.0.0",
-    "dayjs": "^1.11.10"
+    "markdown-it-highlightjs": "^3.3.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
-    "vite": "^5.0.0",
-    "sass": "^1.69.0"
+    "sass": "^1.69.0",
+    "vite": "^5.0.0"
   }
 }
