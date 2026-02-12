@@ -24,7 +24,11 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # 复制 Nginx 配置
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
+# 创建 SSL 目录
+RUN mkdir -p /etc/nginx/ssl
+
 # 暴露端口
 EXPOSE 80
+EXPOSE 443
 
 # Nginx 会自动启动

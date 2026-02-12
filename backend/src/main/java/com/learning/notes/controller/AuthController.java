@@ -17,6 +17,14 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    /**
+     * 用户注册接口
+     * 请求方式：POST
+     * 请求路径：/auth/register
+     * 请求体：JSON格式，包含 username、password、email
+     * 成功：返回200，success=true，message="注册成功"
+     * 失败：返回400，success=false，message=错误信息
+     */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
         try {

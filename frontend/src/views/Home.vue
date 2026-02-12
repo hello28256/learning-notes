@@ -140,13 +140,54 @@
         </div>
       </div>
     </div>
+
+    <!-- 底部联系信息 -->
+    <div class="footer-section">
+      <div class="contact-info">
+        <div class="contact-item">
+          <el-icon><Message /></el-icon>
+          <a href="mailto:hello28256@gmail.com">hello28256@gmail.com</a>
+        </div>
+        <div class="contact-item wechat-item">
+          <el-icon><ChatDotRound /></el-icon>
+          <span>微信扫码联系</span>
+          <el-popover
+            placement="top"
+            :width="220"
+            trigger="hover"
+            popper-class="wechat-popover"
+          >
+            <template #reference>
+              <el-button type="primary" link>查看二维码</el-button>
+            </template>
+            <div class="wechat-qr-container">
+              <img src="/wechat-qr.png" alt="微信二维码" class="wechat-qr-img" />
+              <p class="wechat-qr-text">扫码添加微信</p>
+            </div>
+          </el-popover>
+        </div>
+      </div>
+      <div class="beian-row">
+        <div class="beian-gongan">
+          <a href="https://beian.mps.gov.cn/#/query/webSearch?code=33052302001374" target="_blank" rel="noopener noreferrer">
+            <img src="/beian-icon.png" alt="公安备案图标" class="beian-icon" />
+            <span>浙公网安备33052302001374号</span>
+          </a>
+        </div>
+        <div class="beian-icp">
+          <a href="http://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer">
+            浙ICP备2026007969号
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search, Plus, View, Calendar, Document, Folder, CollectionTag } from '@element-plus/icons-vue'
+import { Search, Plus, View, Calendar, Document, Folder, CollectionTag, Message, ChatDotRound } from '@element-plus/icons-vue'
 import { noteApi } from '@/utils/api'
 import { ElMessage } from 'element-plus'
 import dayjs from 'dayjs'
@@ -504,6 +545,128 @@ onMounted(() => {
         }
       }
     }
+  }
+}
+
+// 底部联系信息
+.footer-section {
+  padding: 40px 0 20px;
+  margin-top: 40px;
+  border-top: 1px solid var(--border-color);
+
+  .contact-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text-secondary);
+
+      .el-icon {
+        color: var(--accent-color);
+        font-size: 16px;
+      }
+
+      a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.3s;
+
+        &:hover {
+          color: var(--accent-color);
+        }
+      }
+
+      &.wechat-item {
+        span {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+
+  .beian-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+
+    .beian-gongan {
+      a {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: var(--accent-color);
+        text-decoration: none;
+        transition: color 0.3s;
+
+        &:hover {
+          color: var(--link-hover);
+          text-decoration: underline;
+        }
+
+        .beian-icon {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
+    .beian-icp {
+      a {
+        font-size: 14px;
+        color: var(--accent-color);
+        text-decoration: none;
+        transition: color 0.3s;
+
+        &:hover {
+          color: var(--link-hover);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+}
+
+// 微信二维码弹窗样式
+.wechat-popover {
+  .el-popover__content {
+    padding: 0 !important;
+  }
+}
+
+.wechat-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  width: 100%;
+  box-sizing: border-box;
+
+  .wechat-qr-img {
+    width: 180px;
+    height: 180px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+    display: block;
+  }
+
+  .wechat-qr-text {
+    margin-top: 12px;
+    font-size: 14px;
+    color: var(--text-secondary);
+    text-align: center;
+    width: 100%;
   }
 }
 
