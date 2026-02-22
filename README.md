@@ -34,6 +34,7 @@ learning-notes/
 │   ├── src/main/resources/
 │   │   ├── application.yml    # 主配置
 │   │   └── application-dev.yml # 开发配置
+│   ├── Dockerfile            # 后端 Docker 配置
 │   └── pom.xml               # Maven 依赖
 ├── frontend/                  # Vue 前端
 │   ├── src/
@@ -43,11 +44,21 @@ learning-notes/
 │   │   ├── utils/           # 工具类
 │   │   ├── App.vue          # 根组件
 │   │   └── main.js          # 入口文件
+│   ├── public/              # 静态资源
+│   ├── Dockerfile           # 前端 Docker 配置
+│   ├── nginx.conf           # Nginx 配置
 │   ├── package.json         # npm 依赖
 │   └── vite.config.js       # Vite 配置
 ├── database/                 # 数据库脚本
 │   └── schema.sql          # 表结构
-└── README.md               # 说明文档
+├── nginx/                    # SSL 配置
+│   ├── default.conf         # HTTPS Nginx 配置
+│   └── ssl/                 # SSL 证书目录
+│       ├── yangq.top.pem    # 证书文件
+│       └── yangq.top.key    # 私钥文件
+├── docker-compose.yml        # Docker Compose 配置
+├── deploy-ecs.sh            # ECS 部署脚本
+└── README.md                # 说明文档
 ```
 
 ## 快速开始
@@ -229,6 +240,50 @@ environment:
   FILE_UPLOAD_DIR: /app/uploads
 ```
 
+## SSL 证书配置
+
+项目已配置 HTTPS 支持，使用阿里云 SSL 证书：
+
+### 1. 下载证书
+在阿里云 SSL 控制台下载 **Nginx** 版本的证书，会得到两个文件：
+- `yangq.top.pem` - 证书文件
+- `yangq.top.key` - 私钥文件
+
+### 2. 放置证书
+将证书文件放到项目目录：
+```bash
+nginx/ssl/
+├── yangq.top.pem
+└── yangq.top.key
+```
+
+### 3. 部署
+证书会自动通过 docker-compose 挂载到 Nginx 容器中：
+```bash
+docker-compose up -d
+```
+
+访问地址：
+- HTTP: http://yangq.top (自动跳转到 HTTPS)
+- HTTPS: https://yangq.top
+
+## 更新项目
+
+### 本地构建后上传（推荐）
+
+```bash
+# 1. 本地构建
+cd backend && mvn clean package -DskipTests && cd ..
+cd frontend && npm run build && cd ..
+
+# 2. 上传到 ECS
+scp backend/target/learning-notes-1.0.0.jar root@ECS_IP:/root/learning-notes/backend/target/
+scp -r frontend/dist root@ECS_IP:/root/learning-notes/frontend/
+
+# 3. 在 ECS 上重启
+ssh root@ECS_IP "cd /root/learning-notes && docker-compose down && docker-compose up -d --build"
+```
+
 ## 注意事项
 
 1. 确保 MySQL 服务已启动
@@ -237,9 +292,9 @@ environment:
 4. 支持的文件扩展名：.md, .txt, .markdown
 5. **生产环境建议**：
    - 修改默认数据库密码
-   - 配置SSL证书
+   - 配置 SSL 证书
    - 设置定期备份
-   - 限制访问IP
+   - 限制访问 IP
 
 ## 许可证
 

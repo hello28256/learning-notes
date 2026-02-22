@@ -69,32 +69,19 @@ public class NoteService {
             throw new IllegalArgumentException("不支持的文件类型");
         }
 
-        // 创建上传目录
-        File uploadDirFile = new File(uploadDir);
-        if (!uploadDirFile.exists()) {
-            uploadDirFile.mkdirs();
-        }
-
-        // 生成唯一文件名
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf('.'));
-        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-        Path filePath = Paths.get(uploadDir, uniqueFileName);
-
-        // 保存文件
-        Files.copy(file.getInputStream(), filePath);
-
-        // 读取文件内容
-        String content = new String(Files.readAllBytes(filePath));
+        // 读取文件内容（直接从内存读取，不保存物理文件）
+        String content = new String(file.getBytes());
 
         // 解析 Markdown 为 HTML
         String htmlContent = parseMarkdownToHtml(content);
 
         // 创建笔记对象
+        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf('.'));
         Note note = new Note();
         note.setTitle(originalFilename.replace(fileExtension, ""));
         note.setContent(content);
         note.setFileName(originalFilename);
-        note.setFilePath(filePath.toString());
+        note.setFilePath(null); // 不再保存物理文件路径
         note.setCategory(category);
         note.setTags(tags);
         note.setViewCount(0);
