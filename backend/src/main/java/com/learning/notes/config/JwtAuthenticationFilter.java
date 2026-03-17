@@ -28,22 +28,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         try {
             String jwt = getJwtFromRequest(request);
-            log.info("JWT from request: {}", jwt);
-
             if (jwt != null && jwtUtil.validateToken(jwt)) {
                 Long userId = jwtUtil.getUserIdFromToken(jwt);
                 String username = jwtUtil.getUsernameFromToken(jwt);
-                log.info("Setting user context - userId: {}, username: {}", userId, username);
+                log.debug("Authenticated request userId={}, username={}", userId, username);
                 UserContext.setCurrentUser(userId, username);
-            } else {
-                log.info("No valid JWT found or token invalid");
             }
         } catch (Exception e) {
             log.error("Could not set user authentication in security context", e);
+        } finally {
+            try {
+                filterChain.doFilter(request, response);
+            } finally {
+                UserContext.clear();
+            }
         }
-
-        filterChain.doFilter(request, response);
-        UserContext.clear(); // 清理上下文
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {

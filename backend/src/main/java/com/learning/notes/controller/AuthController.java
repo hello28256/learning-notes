@@ -18,29 +18,12 @@ public class AuthController {
     private UserService userService;
 
     /**
-     * 用户注册接口
-     * 请求方式：POST
-     * 请求路径：/auth/register
-     * 请求体：JSON格式，包含 username、password、email
-     * 成功：返回200，success=true，message="注册成功"
-     * 失败：返回400，success=false，message=错误信息
+     * 用户注册接口 - 已关闭
+     * 不再允许新用户注册
      */
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> request) {
-        try {
-            String username = request.get("username");
-            String password = request.get("password");
-            String email = request.get("email");
-
-            if (username == null || password == null) {
-                return ResponseEntity.badRequest().body(createErrorResponse("用户名和密码不能为空"));
-            }
-
-            userService.register(username, password, email);
-            return ResponseEntity.ok(createSuccessResponse("注册成功", null));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(createErrorResponse(e.getMessage()));
-        }
+        return ResponseEntity.badRequest().body(createErrorResponse("注册已关闭，请联系管理员"));
     }
 
     @PostMapping("/login")
